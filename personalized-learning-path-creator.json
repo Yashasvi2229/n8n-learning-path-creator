@@ -1,0 +1,439 @@
+{
+  "name": "My workflow 206",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://google.serper.dev/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $node[\"Define Goal\"].json['Skill Goal'] + ' best documentation, highly rated tutorials and articles.' }}"
+            },
+            {
+              "name": "engine",
+              "value": "Google"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "YOUR_SERPER_API_KEY_HERE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        -48
+      ],
+      "id": "fc92959b-b549-4bdc-a49c-d79bbf939a0e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8fb872b8-0689-4dbe-b868-c036c1d14ca1",
+              "name": "Skill Goal",
+              "value": "={{ $json['What do you want to learn?'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        -48
+      ],
+      "id": "22694e51-4131-4260-b857-eee7c1deaba3",
+      "name": "Define Goal"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8f306228-2c74-4ce8-a314-4991a9f1309f",
+              "name": "resourceText",
+              "value": "={{ $json.organic.toJsonString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        784,
+        -48
+      ],
+      "id": "46cbdcbc-450a-470d-8651-dd5312ed8f05",
+      "name": "Prompt refining"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.resourceText }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a helpful assistant. \nAs an expert tutor, create a 5-step learning path for the user's goal. Ensure the path is logical, progressing from basic to advanced concepts.\n\nGOAL: {{ $node[\"Define Goal\"].json['Skill Goal'] }}\n\nRESOURCES: Use the following list of highly-rated tutorials and articles to create the steps. For each step, include 1-2 relevant resource links/titles from this list in the description.\n\n{{ $json.resourceText }}\n\nOutput the result as a single, clean JSON array of objects.\n\nJSON STRUCTURE:\n[\n  { \"title\": \"...\", \"description\": \"...\" },\n  { \"title\": \"...\", \"description\": \"...\" }\n]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -48
+      ],
+      "id": "31bcbb16-ee58-4ce1-96dc-d382e39fd415",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        768,
+        352
+      ],
+      "id": "035cd8d7-71a3-4d58-b871-2fd8e8f6d54e",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "MPU3DHBbD6zTFRRE",
+          "name": "Groq account 18"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"title\": \"Basic Syntax and Environment Setup\",\n    \"description\": \"Start with a Python installation and learn core data types (strings, lists, dicts).\"\n  },\n  {\n    \"title\": \"Data Manipulation with Pandas\",\n    \"description\": \"Install Pandas and learn DataFrame creation, indexing, and merging. Include a link.\"\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1136,
+        352
+      ],
+      "id": "2145ea01-332f-44d7-99d5-bf7ef004bc00",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -48
+      ],
+      "id": "fbb297f7-edd5-4b51-9c44-3052b6975581",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "listId": "={{ $json.idtouse }}",
+        "name": "={{ $json.name }}",
+        "description": "={{ $json.desc }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.trello",
+      "typeVersion": 1,
+      "position": [
+        2352,
+        80
+      ],
+      "id": "d7b92fb3-d145-4079-84e2-4fd0f63e32aa",
+      "name": "Create a card",
+      "credentials": {
+        "trelloApi": {
+          "id": "MRvvFb97uZRpXvuS",
+          "name": "Trello account 16"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Personalized Learning Path Creator",
+        "formDescription": "Your custom, step-by-step learning plan will be created in Trello instantly!",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What do you want to learn?",
+              "placeholder": "e.g., Learn Python for data analysis"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        -48
+      ],
+      "id": "cf66a39a-96ef-4aa8-af57-8c108e36382a",
+      "name": "On form submission",
+      "webhookId": "01516ff4-2f43-4b79-b770-bf65d54b60d3"
+    },
+    {
+      "parameters": {
+        "resource": "list",
+        "idBoard": "68f268d6aac2c19186d57c7a",
+        "name": "={{ $('Define Goal').item.json['Skill Goal'] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.trello",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        176
+      ],
+      "id": "8a482548-2af7-460e-b607-7255ea83f8a3",
+      "name": "Create a list",
+      "credentials": {
+        "trelloApi": {
+          "id": "MRvvFb97uZRpXvuS",
+          "name": "Trello account 16"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2112,
+        80
+      ],
+      "id": "582df2a4-9bb6-4695-a1c9-cad65d427452",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "936d5723-d17c-45cf-bc06-1790fc9f0163",
+              "name": "name",
+              "value": "={{ $json.output.title }}",
+              "type": "string"
+            },
+            {
+              "id": "38e99719-c3db-4f4f-befb-340a700b261b",
+              "name": "desc",
+              "value": "={{ $json.output.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        -48
+      ],
+      "id": "f9fbd901-94e7-48fa-bc66-45f268c512d1",
+      "name": "name and desc formed"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "284ffd8e-343f-448b-869c-ada612217e24",
+              "name": "idtouse",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        176
+      ],
+      "id": "c34b4279-4f6f-4a24-8a69-77dc6c51954f",
+      "name": "List name"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Define Goal": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Prompt refining",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt refining": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a list",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "name and desc formed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Define Goal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a list": {
+      "main": [
+        [
+          {
+            "node": "List name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create a card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "name and desc formed": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List name": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "02d1a296-d992-4fdb-90a3-4e5392df6901",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4491b6c675c5ab5722f4407d6dbd04ffad51e664e6cf47286e31b286fd34da4e"
+  },
+  "id": "xQCMey0IAZW3CbhF",
+  "tags": []
+}
